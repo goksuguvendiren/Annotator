@@ -5,27 +5,34 @@
 
 namespace fs = std::filesystem;
 
+std::string to_string(int i)
+{
+    std::string res = "0";
+    if (i < 10)
+        return "000" + std::to_string(i);
+    else if (i < 100)
+        return "00" + std::to_string(i);
+
+    return "0" + std::to_string(i);
+}
+
 int main(int argc, const char** argv)
 {
-    std::cerr << "hi\n";
-
-    if (argc != 2)
-    {
-        std::cout << "Usage is : ./Annotater path_to_image_folder \n";
-        return 0;
-    }
-
     std::map<std::string, std::pair<float, float>> image_point_mapping;
 
-    std::string path = std::string{argv[1]};
+    std::string path = std::string{"/Users/goksu/Documents/UCSB/2019-2020/Winter/CS291I/project/0.0.Normal"};
     std::cerr << "Image path is: " << path << "\n";
 
     cv::namedWindow("fundus_image", 1);
 
-    for (const auto& entry : fs::directory_iterator(path))
+    for (int i = 1; i < 483; ++i)
     {
-        std::cout << entry.path().filename() << std::endl;
-        auto image = cv::imread(entry.path());
+        std::string num = to_string(i);
+        std::string image_name = "/Im" + num + "_ORIGA.jpg";
+
+        std::cerr << path + image_name << '\n';
+
+        auto image = cv::imread(path + image_name);
 
         std::pair<int, int> macula_point;
         cv::setMouseCallback(
@@ -49,14 +56,14 @@ int main(int argc, const char** argv)
                   << (macula_point.second / (float)image.rows) << '\n';
 
         image_point_mapping.insert(
-            std::make_pair(entry.path().filename(), std::pair<float, float>{macula_point.first / (float)image.cols,
+            std::make_pair(image_name, std::pair<float, float>{macula_point.first / (float)image.cols,
                                                                             macula_point.second / (float)image.rows}));
 
         cv::Mat image_labeled(image);
         cv::circle(image_labeled, {macula_point.first, macula_point.second}, 5.f, {200, 200, 50}, -1);
 
-        std::cerr << std::string(entry.path().filename()) + std::string("_labeled.png") << '\n';
-        cv::imwrite(std::string(entry.path().filename()) + std::string("_labeled.png"), image_labeled);
+        std::cerr << std::string(image_name) + std::string("_labeled.png") << '\n';
+        cv::imwrite(std::string(image_name) + std::string("_labeled.png"), image_labeled);
     }
 
     std::ofstream labels;
